@@ -60,6 +60,14 @@
     (emit! :slacker.client/send-message channel
            (format "<@%s>: %s" user text))))
 
+(defn burn
+  [{:keys [channel user text]}]
+  (when-let [text (last (re-find #"^!burn (.+)$" text))]
+    (let [n (int (Math/floor (/ (count text) 5/2)))
+          fire (clojure.string/join "" (repeat n ":fire:"))]
+      (emit! :slacker.client/send-message channel
+            (format "%s\n%s" text fire)))))
+
 (defn simple-matcher
   [{:keys [channel user text]}]
   (when-let [res (condp = text
@@ -81,6 +89,7 @@
 (defn run []
   (handle :message simple-matcher)
   (handle :message yamabiko)
+  (handle :message burn)
   (handle :message eval-clojure)
   (if-let [api-token (env :slack-api-token)]
     (do
